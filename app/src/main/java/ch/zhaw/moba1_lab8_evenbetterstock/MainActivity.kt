@@ -1,58 +1,93 @@
 package ch.zhaw.moba1_lab8_evenbetterstock
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.text.Editable
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
-import ch.zhaw.moba1_lab8_evenbetterstock.databinding.ActivityMainBinding
+import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import com.google.android.material.textfield.TextInputEditText
+import ch.zhaw.moba1_lab8_evenbetterstock.R.id.*
 
-class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var binding: ActivityMainBinding
+class MainActivity : AppCompatActivity(), View.OnClickListener {
 
+    //private lateinit var appBarConfiguration: AppBarConfiguration
+    //private lateinit var binding: ActivityMainBinding
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var stockInputView: TextInputEditText
+
+    private lateinit var queue: RequestQueue
+    //private lateinit var request: StringRequest
+    private var urlFirstPart = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol="
+    private var urlSecondPart = "&apikey=<R97TTGEBZXRBP60R>"
+
+
+    @SuppressLint("MissingInflatedId", "ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        recyclerView = findViewById(R.id.stockListRecyclerView)
+        stockInputView = findViewById(R.id.stockInputView)
 
-        setSupportActionBar(binding.toolbar)
+        // listener on button
+        arrayOf<Button>(
+            findViewById(button3),
+        ).forEach {it.setOnClickListener(this)}
+    }
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+    override fun onClick(view: View?) {
+        if (view != null) {
+            when (view.id) {
+                button3 -> addStock()
+            }
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
+    private fun getSymbol(): String {
+        return stockInputView.text.toString()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
+    // TODO
+    private fun addStock() {
+
+        //get text from textinput
+        var sym = getSymbol()
+        var finalUrl = urlFirstPart + sym + urlSecondPart
+
+        // define request
+        queue = Volley.newRequestQueue(this)
+
+        val request = StringRequest(
+            Request.Method.GET, finalUrl,
+            { response ->
+
+                var strResp = response.toString()
+                // textView
+                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
+                var outputStock = lines.subList(2, lines.lastIndex)
+
+                val arrayAdapter: ArrayAdapter<*>
+                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
+                //recyclerView.adapter = arrayAdapter
+            },
+            {
+                    error ->
+
+                //textView!!.text = "That didn't work!"
+                // Error
+            }
+        )
+        // add call to request queue
+        queue.add(request)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
+
 }

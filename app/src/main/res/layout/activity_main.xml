@@ -19,11 +19,12 @@
             app:popupTheme="@style/Theme.MOBA1_Lab8_EvenBetterStock.PopupOverlay" />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/stockListRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:itemCount="7"
             android:background="#FFFFFF"
-            tools:listitem="@layout/recycler_view_item" >
+            tools:itemCount="7"
+            tools:listitem="@layout/recycler_view_item">
 
         </androidx.recyclerview.widget.RecyclerView>
 
@@ -32,6 +33,7 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/stockInputView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter Stock Symbol" />
