@@ -17,19 +17,15 @@ import ch.zhaw.moba1_lab8_evenbetterstock.R.id.*
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    //private lateinit var appBarConfiguration: AppBarConfiguration
-    //private lateinit var binding: ActivityMainBinding
-
-    // TODO change to listview for arrayadapter?
     private lateinit var stockListView: ListView
     private lateinit var stockInputView: TextInputEditText
 
-    //TODO array for requests/stocks?
     private var stockArray: ArrayList<String> = ArrayList<String>()
+    //private var stockArrayForDisplay: ArrayList<String> = ArrayList<String>()
+
 
     // variables for requests
     private lateinit var queue: RequestQueue
-    //private lateinit var request: StringRequest
     private var urlFirstPart = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol="
     private var urlSecondPart = "&apikey=<R97TTGEBZXRBP60R>"
 
@@ -50,7 +46,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         ).forEach {it.setOnClickListener(this)}
     }
 
-    // TODO click action
     override fun onClick(view: View?) {
         if (view != null) {
             when (view.id) {
@@ -68,7 +63,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // adds stock to stocklist to be shown
     private fun addStock() {
-        // TODO
         // add symbol to array
         var tempSym = getSymbol()
         stockArray.add(tempSym)
@@ -77,12 +71,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun putStocks() {
-//        var tempArray = ArrayList<String>()
-//
-//        for (stock in stockArray) {
-//            if (tempArray != null) {
-//                tempArray.add(request(stock).toString())
-//        }
+        //getStockNameAndPrice()
 
         val arrayAdapter: ArrayAdapter<*>
         arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArray)
@@ -90,20 +79,29 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     }
 
+    private fun setStockNameAndPrice() {
+        //var tempArray = ArrayList<String>()
+
+        for (stock in stockArray) {
+            request(stock)
+        }
+    }
+
     // TODO button to update all stocks
     // for each -> request() in array?
     private fun updateStocks() {
-
+        setStockNameAndPrice()
+        putStocks()
     }
 
     // TODO reset/delete view
     // empty array, update view
     private fun clearList() {
-
+        stockArray.clear()
+        putStocks()
     }
 
-    private fun request(stock: String): StringRequest {
-        // TODO extract the following code for request?
+    private fun request(stock: String){
         var sym = stock
         var finalUrl = urlFirstPart + sym + urlSecondPart
 
@@ -111,20 +109,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         queue = Volley.newRequestQueue(this)
 
         // TODO check whats coming back from call here to extract price
-        var strResp = String()
         val request = StringRequest(
             Request.Method.GET, finalUrl,
             { response ->
 
-                strResp = response.toString()
+                var strResp = response.toString()
                 // textView
-//                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
-//                var outputStock = lines.subList(2, lines.lastIndex)
+                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
+                var outputStock = lines.subList(5, 6).toString()
 
-//                // TODO show list, stock and price
-//                val arrayAdapter: ArrayAdapter<*>
-//                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
-//                stockListView.adapter = arrayAdapter
+                //stockArrayForDisplay.add(outputStock)
             },
             {
                     error ->
@@ -136,7 +130,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         // add call to request queue
         queue.add(request)
-        return request
     }
 
 
