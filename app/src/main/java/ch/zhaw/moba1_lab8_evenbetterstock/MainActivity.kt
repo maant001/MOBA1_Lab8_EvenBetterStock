@@ -20,9 +20,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     //private lateinit var appBarConfiguration: AppBarConfiguration
     //private lateinit var binding: ActivityMainBinding
+
+    // TODO change to listview for arrayadapter?
     private lateinit var recyclerView: RecyclerView
     private lateinit var stockInputView: TextInputEditText
 
+    //TODO array for requests/stocks?
+    private lateinit var stockArray: Array<String>
+
+    // variables for requests
     private lateinit var queue: RequestQueue
     //private lateinit var request: StringRequest
     private var urlFirstPart = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol="
@@ -37,12 +43,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         recyclerView = findViewById(R.id.stockListRecyclerView)
         stockInputView = findViewById(R.id.stockInputView)
 
-        // listener on button
+        // listener on button(s)
         arrayOf<Button>(
             findViewById(button3),
         ).forEach {it.setOnClickListener(this)}
     }
 
+    // click action
     override fun onClick(view: View?) {
         if (view != null) {
             when (view.id) {
@@ -51,13 +58,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    // get input string
     private fun getSymbol(): String {
         return stockInputView.text.toString()
     }
 
-    // TODO
+    // TODO rename?
     private fun addStock() {
 
+        // TODO
+        // add symbol to array?
+
+        // TODO extract the following code for request?
         //get text from textinput
         var sym = getSymbol()
         var finalUrl = urlFirstPart + sym + urlSecondPart
@@ -65,6 +77,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // define request
         queue = Volley.newRequestQueue(this)
 
+        // TODO check whats coming back from call here to extract price
         val request = StringRequest(
             Request.Method.GET, finalUrl,
             { response ->
@@ -74,6 +87,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
                 var outputStock = lines.subList(2, lines.lastIndex)
 
+                // TODO show list, stock and price
                 val arrayAdapter: ArrayAdapter<*>
                 arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
                 //recyclerView.adapter = arrayAdapter
@@ -85,8 +99,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 // Error
             }
         )
+
         // add call to request queue
         queue.add(request)
+    }
+
+    // TODO button to update all stocks
+    // for each -> addStock() in array?
+    private fun updateStocks() {
+
+    }
+
+    // TODO reset/delete view
+    // empty array, update view
+    private fun clearList() {
+
     }
 
 
