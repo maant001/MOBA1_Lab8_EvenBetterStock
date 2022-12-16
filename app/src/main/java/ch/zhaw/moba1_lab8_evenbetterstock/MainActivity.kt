@@ -2,12 +2,11 @@ package ch.zhaw.moba1_lab8_evenbetterstock
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.text.Editable
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.StringRequest
@@ -22,7 +21,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     //private lateinit var binding: ActivityMainBinding
 
     // TODO change to listview for arrayadapter?
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var stockListView: ListView
     private lateinit var stockInputView: TextInputEditText
 
     //TODO array for requests/stocks?
@@ -40,20 +39,24 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        recyclerView = findViewById(R.id.stockListRecyclerView)
+        stockListView = findViewById(R.id.stockListView)
         stockInputView = findViewById(R.id.stockInputView)
 
-        // listener on button(s)
+        // listener on buttons
         arrayOf<Button>(
-            findViewById(button3),
+            findViewById(addStockButton),
+            findViewById(refreshButton),
+            findViewById(clearButton),
         ).forEach {it.setOnClickListener(this)}
     }
 
-    // click action
+    // TODO click action
     override fun onClick(view: View?) {
         if (view != null) {
             when (view.id) {
-                button3 -> addStock()
+                addStockButton -> addStock()
+                refreshButton -> updateStocks()
+                clearButton -> clearList()
             }
         }
     }
