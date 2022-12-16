@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var stockInputView: TextInputEditText
 
     //TODO array for requests/stocks?
-    private lateinit var stockArray: Array<String>
+    private var stockArray: ArrayList<String> = ArrayList<String>()
 
     // variables for requests
     private lateinit var queue: RequestQueue
@@ -66,34 +66,65 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         return stockInputView.text.toString()
     }
 
-    // TODO rename?
+    // adds stock to stocklist to be shown
     private fun addStock() {
-
         // TODO
-        // add symbol to array?
+        // add symbol to array
+        var tempSym = getSymbol()
+        stockArray.add(tempSym)
+        putStocks()
+        stockInputView.setText("")
+    }
 
+    private fun putStocks() {
+//        var tempArray = ArrayList<String>()
+//
+//        for (stock in stockArray) {
+//            if (tempArray != null) {
+//                tempArray.add(request(stock).toString())
+//        }
+
+        val arrayAdapter: ArrayAdapter<*>
+        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArray)
+        stockListView.adapter = arrayAdapter
+
+    }
+
+    // TODO button to update all stocks
+    // for each -> request() in array?
+    private fun updateStocks() {
+
+    }
+
+    // TODO reset/delete view
+    // empty array, update view
+    private fun clearList() {
+
+    }
+
+    private fun request(stock: String): StringRequest {
         // TODO extract the following code for request?
-        //get text from textinput
-        var sym = getSymbol()
+        var sym = stock
         var finalUrl = urlFirstPart + sym + urlSecondPart
 
         // define request
         queue = Volley.newRequestQueue(this)
 
         // TODO check whats coming back from call here to extract price
+        var strResp = String()
         val request = StringRequest(
             Request.Method.GET, finalUrl,
             { response ->
 
-                var strResp = response.toString()
+                strResp = response.toString()
                 // textView
-                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
-                var outputStock = lines.subList(2, lines.lastIndex)
+//                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
+//                var outputStock = lines.subList(2, lines.lastIndex)
 
-                // TODO show list, stock and price
-                val arrayAdapter: ArrayAdapter<*>
-                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
-                //recyclerView.adapter = arrayAdapter
+//                // TODO show list, stock and price
+//                val arrayAdapter: ArrayAdapter<*>
+//                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
+//                stockListView.adapter = arrayAdapter
             },
             {
                     error ->
@@ -105,18 +136,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         // add call to request queue
         queue.add(request)
-    }
-
-    // TODO button to update all stocks
-    // for each -> addStock() in array?
-    private fun updateStocks() {
-
-    }
-
-    // TODO reset/delete view
-    // empty array, update view
-    private fun clearList() {
-
+        return request
     }
 
 
