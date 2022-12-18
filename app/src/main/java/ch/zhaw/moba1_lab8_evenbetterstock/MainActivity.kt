@@ -2,6 +2,7 @@ package ch.zhaw.moba1_lab8_evenbetterstock
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -13,6 +14,7 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.material.textfield.TextInputEditText
 import ch.zhaw.moba1_lab8_evenbetterstock.R.id.*
+import org.json.JSONObject
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -21,7 +23,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var stockInputView: TextInputEditText
 
     private var stockArray: ArrayList<String> = ArrayList<String>()
-    //private var stockArrayForDisplay: ArrayList<String> = ArrayList<String>()
+    private var stockArrayForDisplay: ArrayList<String> = ArrayList<String>()
 
 
     // variables for requests
@@ -64,72 +66,66 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // adds stock to stocklist to be shown
     private fun addStock() {
         // add symbol to array
-        var tempSym = getSymbol()
-        stockArray.add(tempSym)
+        stockArray.add(getSymbol())
         putStocks()
-        stockInputView.setText("")
-    }
-
-    private fun putStocks() {
-        //getStockNameAndPrice()
 
         val arrayAdapter: ArrayAdapter<*>
         arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArray)
         stockListView.adapter = arrayAdapter
 
+        stockInputView.setText("")
+    }
+
+    private fun putStocks() {
+        setStockNameAndPrice()
+
+        val arrayAdapter: ArrayAdapter<*>
+        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArrayForDisplay)
+        stockListView.adapter = arrayAdapter
     }
 
     private fun setStockNameAndPrice() {
-        //var tempArray = ArrayList<String>()
-
         for (stock in stockArray) {
             request(stock)
         }
     }
 
-    // TODO button to update all stocks
-    // for each -> request() in array?
     private fun updateStocks() {
-        setStockNameAndPrice()
         putStocks()
     }
 
-    // TODO reset/delete view
     // empty array, update view
     private fun clearList() {
         stockArray.clear()
-        putStocks()
+        stockArrayForDisplay.clear()
+        updateStocks()
     }
 
-    private fun request(stock: String){
+    private fun request(stock: String) {
         var sym = stock
         var finalUrl = urlFirstPart + sym + urlSecondPart
 
         // define request
         queue = Volley.newRequestQueue(this)
 
-        // TODO check whats coming back from call here to extract price
-        val request = StringRequest(
-            Request.Method.GET, finalUrl,
+        queue.add((StringRequest(
+            com.android.volley.Request.Method.GET, finalUrl,
             { response ->
+                val jsonObject = JSONObject(response);
+                val globalQuote = jsonObject.getJSONObject("Global Quote");
+                val price = globalQuote.getString("05. price");
+                stockArrayForDisplay.add(stock + "               " + price.toDouble().toString());
 
-                var strResp = response.toString()
-                // textView
-                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
-                var outputStock = lines.subList(5, 6).toString()
-
-                //stockArrayForDisplay.add(outputStock)
+//                val arrayAdapter: ArrayAdapter<*>
+//                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArrayForDisplay)
+//                stockListView.adapter = arrayAdapter
             },
-            {
-                    error ->
-
-                //textView!!.text = "That didn't work!"
-                // Error
+            { error ->
+                //Log.e("Volley", error.toString());
             }
-        )
+        ))
 
-        // add call to request queue
-        queue.add(request)
+        )
     }
 
 
