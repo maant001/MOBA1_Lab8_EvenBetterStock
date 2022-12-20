@@ -2,35 +2,32 @@ package ch.zhaw.moba1_lab8_evenbetterstock
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.text.Editable
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.material.textfield.TextInputEditText
 import ch.zhaw.moba1_lab8_evenbetterstock.R.id.*
+import org.json.JSONObject
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    //private lateinit var appBarConfiguration: AppBarConfiguration
-    //private lateinit var binding: ActivityMainBinding
-
-    // TODO change to listview for arrayadapter?
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var stockListView: ListView
     private lateinit var stockInputView: TextInputEditText
 
-    //TODO array for requests/stocks?
-    private lateinit var stockArray: Array<String>
+    private var stockArray: ArrayList<String> = ArrayList<String>()
+    private var stockArrayForDisplay: ArrayList<String> = ArrayList<String>()
+
 
     // variables for requests
     private lateinit var queue: RequestQueue
-    //private lateinit var request: StringRequest
     private var urlFirstPart = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol="
     private var urlSecondPart = "&apikey=<R97TTGEBZXRBP60R>"
 
@@ -40,20 +37,23 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        recyclerView = findViewById(R.id.stockListRecyclerView)
+        stockListView = findViewById(R.id.stockListView)
         stockInputView = findViewById(R.id.stockInputView)
 
-        // listener on button(s)
+        // listener on buttons
         arrayOf<Button>(
-            findViewById(button3),
+            findViewById(addStockButton),
+            findViewById(refreshButton),
+            findViewById(clearButton),
         ).forEach {it.setOnClickListener(this)}
     }
 
-    // click action
     override fun onClick(view: View?) {
         if (view != null) {
             when (view.id) {
-                button3 -> addStock()
+                addStockButton -> addStock()
+                refreshButton -> updateStocks()
+                clearButton -> clearList()
             }
         }
     }
@@ -63,57 +63,69 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         return stockInputView.text.toString()
     }
 
-    // TODO rename?
+    // adds stock to stocklist to be shown
     private fun addStock() {
+        // add symbol to array
+        stockArray.add(getSymbol())
+        putStocks()
 
-        // TODO
-        // add symbol to array?
+        val arrayAdapter: ArrayAdapter<*>
+        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArray)
+        stockListView.adapter = arrayAdapter
 
-        // TODO extract the following code for request?
-        //get text from textinput
-        var sym = getSymbol()
+        stockInputView.setText("")
+    }
+
+    private fun putStocks() {
+        setStockNameAndPrice()
+
+        val arrayAdapter: ArrayAdapter<*>
+        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArrayForDisplay)
+        stockListView.adapter = arrayAdapter
+    }
+
+    private fun setStockNameAndPrice() {
+        for (stock in stockArray) {
+            request(stock)
+        }
+    }
+
+    private fun updateStocks() {
+        putStocks()
+    }
+
+    // empty array, update view
+    private fun clearList() {
+        stockArray.clear()
+        stockArrayForDisplay.clear()
+        updateStocks()
+    }
+
+    private fun request(stock: String) {
+        var sym = stock
         var finalUrl = urlFirstPart + sym + urlSecondPart
 
         // define request
         queue = Volley.newRequestQueue(this)
 
-        // TODO check whats coming back from call here to extract price
-        val request = StringRequest(
-            Request.Method.GET, finalUrl,
+        queue.add((StringRequest(
+            com.android.volley.Request.Method.GET, finalUrl,
             { response ->
+                val jsonObject = JSONObject(response);
+                val globalQuote = jsonObject.getJSONObject("Global Quote");
+                val price = globalQuote.getString("05. price");
+                stockArrayForDisplay.add(stock + "               " + price.toDouble().toString());
 
-                var strResp = response.toString()
-                // textView
-                var lines = strResp.replace(",", "").replace("\"", "").replace("{", "").replace("}", "").lines()
-                var outputStock = lines.subList(2, lines.lastIndex)
-
-                // TODO show list, stock and price
-                val arrayAdapter: ArrayAdapter<*>
-                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, outputStock)
-                //recyclerView.adapter = arrayAdapter
+//                val arrayAdapter: ArrayAdapter<*>
+//                arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stockArrayForDisplay)
+//                stockListView.adapter = arrayAdapter
             },
-            {
-                    error ->
-
-                //textView!!.text = "That didn't work!"
-                // Error
+            { error ->
+                //Log.e("Volley", error.toString());
             }
+        ))
+
         )
-
-        // add call to request queue
-        queue.add(request)
-    }
-
-    // TODO button to update all stocks
-    // for each -> addStock() in array?
-    private fun updateStocks() {
-
-    }
-
-    // TODO reset/delete view
-    // empty array, update view
-    private fun clearList() {
-
     }
 
 
